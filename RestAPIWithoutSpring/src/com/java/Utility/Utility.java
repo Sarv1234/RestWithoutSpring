@@ -14,9 +14,9 @@ public class Utility {
 		try {
 
 			InputStream inputStream = null;
-			//inputStream = getClass().getClassLoader().getResourceAsStream("query.properties");
+			inputStream = getClass().getClassLoader().getResourceAsStream("query.properties");
 			//inputStream = getClass().getResource(com.java.util\\query.properties);
-			inputStream=new FileInputStream("D:\\myJavaWorkSpace\\RestAPIWithoutSpring\\resource\\query.properties");
+			//inputStream=new FileInputStream("C:\\Users\\Acetr\\git\\myGitRepository\\RestAPIWithoutSpring\\resource\\query.properties");
 			if (inputStream != null) {
 				property.load(inputStream);
 				System.out.println(inputStream);
