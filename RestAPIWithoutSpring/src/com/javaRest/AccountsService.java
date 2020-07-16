@@ -19,7 +19,7 @@ import com.java.DB.configuration.LoadQueryValues;
 import com.java.Model.Accounts;
 import com.java.Model.AccountsHandler;
 import com.java.Utility.Utility;
-
+//To Fetch Accounts Details
 @Path("/accounts")
 public class AccountsService {
 
