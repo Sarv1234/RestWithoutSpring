@@ -120,6 +120,11 @@ public class UserService {
 				userHandler.setErrorMsg("UserName Invalid");
 				return userHandler;
 			}
+			if(userId==null || userId=="") {
+				userHandler.setErrorCode("400");
+				userHandler.setErrorMsg("UserId Not Present");
+				return userHandler;
+			}
 			LoadQueryValues.loadPropertyValues();
 			String getQuery = LoadQueryValues.UPDATE_SPECIFIC_USER + " name='" + user.getUserName() + "' where userid="
 					+ userId;

@@ -84,6 +84,11 @@ public class AccountsService {
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		AccountsHandler accountsHandler = new AccountsHandler();
 		try {
+			if(uuid==0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Account Id Not Present");
+				return accountsHandler;
+			}
 			LoadQueryValues.loadPropertyValues();
 			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + uuid;
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
@@ -142,6 +147,11 @@ public class AccountsService {
 		AccountsHandler accountsHandler = new AccountsHandler();
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
+			if(accountId==0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Account Id Not Present");
+				return accountsHandler;
+			}
 			String getQuery = LoadQueryValues.DELETE_SPECIFIC_ACCOUNT + accountId;
 			System.out.println(getQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
@@ -168,6 +178,11 @@ public class AccountsService {
 		AccountsHandler accountsHandler = new AccountsHandler();
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
+			if(accounts.getUuid()==0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Account Id Not Present");
+				return accountsHandler;
+			}
 			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + accounts.getUuid();
 			System.out.println(getQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
@@ -209,6 +224,11 @@ public class AccountsService {
 		AccountsHandler accountsHandler = new AccountsHandler();
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
+			if(accounts.getUuid()==0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Account Id Not Present");
+				return accountsHandler;
+			}
 			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + accounts.getUuid();
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
 			if (accounts.getBalance() < 0) {
