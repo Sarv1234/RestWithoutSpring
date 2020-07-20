@@ -18,9 +18,36 @@ import com.java.DB.configuration.HSQLConfig;
 import com.java.DB.configuration.LoadQueryValues;
 import com.java.Model.User;
 import com.java.Model.UserHandler;
+import com.java.Utility.Utility;
 
 @Path("/users")
 public class UserService {
+
+	@GET
+	@Path("/createTable")
+	@Produces("application/json")
+	public UserHandler createUserTable() {
+		UserHandler userHandler = new UserHandler();
+		List<User> userList = new ArrayList<User>();
+		try {
+			LoadQueryValues.loadPropertyValues();
+			String checkIfUserPresentQuery = LoadQueryValues.CHECK_IF_TABLE_EXISTS + "USER'";
+			userList = HSQLConfig.executeQueryForUser(checkIfUserPresentQuery);
+			if (userList.size() > 0) {
+				userHandler.setErrorCode("200");
+				userHandler.setErrorMsg("Table Already Exists!!!");
+			} else {
+				String createAccountsQuery = LoadQueryValues.CREATE_NEW_USER_TABLE;
+				HSQLConfig.executeQueryForUser(createAccountsQuery);
+				userHandler.setErrorCode("200");
+				userHandler.setErrorMsg("Table Created!!!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return userHandler;
+
+	}
 
 	@GET
 	@Path("/all")
@@ -54,10 +81,15 @@ public class UserService {
 	@Produces("application/json")
 	public UserHandler getAllSpecificUser(@PathParam("userName") String userName) {
 		UserHandler userHandler = new UserHandler();
-		LoadQueryValues.loadPropertyValues();
-		String getQuery = LoadQueryValues.GET_SPECIFIC_USER + "'" + userName + "'";
 		List<User> userList = new ArrayList<User>();
 		try {
+			if (new Utility().testIfDigitPresent(userName)) {
+				userHandler.setErrorCode("400");
+				userHandler.setErrorMsg("UserName Invalid");
+				return userHandler;
+			}
+			LoadQueryValues.loadPropertyValues();
+			String getQuery = LoadQueryValues.GET_SPECIFIC_USER + "'" + userName + "'";
 			userList = HSQLConfig.executeQueryForUser(getQuery);
 			if (userList.size() > 0) {
 				userHandler.setUserList(userList);
@@ -67,6 +99,7 @@ public class UserService {
 				userHandler.setErrorCode("400");
 				userHandler.setErrorMsg("List Empty");
 			}
+
 		} catch (SQLException e) {
 
 			e.printStackTrace();
@@ -80,12 +113,16 @@ public class UserService {
 	@Consumes("application/json")
 	public UserHandler updateUser(@QueryParam("userId") String userId, User user) {
 		UserHandler userHandler = new UserHandler();
-		LoadQueryValues.loadPropertyValues();
-		String getQuery = LoadQueryValues.UPDATE_SPECIFIC_USER + " name='" + user.getUserName() + "' where userid="
-				+ userId;
-		System.out.println(getQuery);
 		List<User> userList = new ArrayList<User>();
 		try {
+			if (new Utility().testIfDigitPresent(user.getUserName())) {
+				userHandler.setErrorCode("400");
+				userHandler.setErrorMsg("UserName Invalid");
+				return userHandler;
+			}
+			LoadQueryValues.loadPropertyValues();
+			String getQuery = LoadQueryValues.UPDATE_SPECIFIC_USER + " name='" + user.getUserName() + "' where userid="
+					+ userId;
 			userList = HSQLConfig.executeQueryForUser(getQuery);
 			if (userList.size() > 0) {
 				userHandler.setUserList(userList);
@@ -106,12 +143,17 @@ public class UserService {
 	@DELETE
 	@Path("/{userId}")
 	@Produces("application/json")
-	public UserHandler createUser(@PathParam("userId") String userName) {
+	public UserHandler deleteUser(@PathParam("userId") String userName) {
 		UserHandler userHandler = new UserHandler();
-		LoadQueryValues.loadPropertyValues();
-		String getQuery = LoadQueryValues.DELETE_SPECIFIC_USER + "'" + userName + "'";
 		List<User> userList = new ArrayList<User>();
 		try {
+			if (new Utility().testIfDigitPresent(userName)) {
+				userHandler.setErrorCode("400");
+				userHandler.setErrorMsg("UserName Invalid");
+				return userHandler;
+			}
+			LoadQueryValues.loadPropertyValues();
+			String getQuery = LoadQueryValues.DELETE_SPECIFIC_USER + "'" + userName + "'";
 			userList = HSQLConfig.executeQueryForUser(getQuery);
 			if (userList.size() > 0) {
 				userHandler.setUserList(userList);
@@ -128,4 +170,5 @@ public class UserService {
 		return userHandler;
 
 	}
+
 }

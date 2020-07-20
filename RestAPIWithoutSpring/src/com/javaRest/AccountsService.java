@@ -18,10 +18,40 @@ import com.java.DB.configuration.HSQLConfig;
 import com.java.DB.configuration.LoadQueryValues;
 import com.java.Model.Accounts;
 import com.java.Model.AccountsHandler;
+import com.java.Model.User;
+import com.java.Model.UserHandler;
 import com.java.Utility.Utility;
+
 //To Fetch Accounts Details
 @Path("/accounts")
 public class AccountsService {
+
+	@GET
+	@Path("/createTable")
+	@Produces("application/json")
+	public AccountsHandler createAccountsTable() {
+		AccountsHandler accountsHandler = new AccountsHandler();
+		List<Accounts> valueList = new ArrayList<Accounts>();
+		try {
+			LoadQueryValues.loadPropertyValues();
+			String checkIfUserPresentQuery = LoadQueryValues.CHECK_IF_TABLE_EXISTS+"ACCOUNTS'";
+			
+			valueList = HSQLConfig.executeQueryForAccounts(checkIfUserPresentQuery);
+			if(valueList.size()>0) {
+				accountsHandler.setErrorCode("200");
+				accountsHandler.setErrorMsg("Table Already Exists");
+			}else {
+				String createAccountsQuery = LoadQueryValues.CREATE_NEW_ACCOUNTS_TABLE;
+				HSQLConfig.executeQueryForAccounts(createAccountsQuery);
+				accountsHandler.setErrorCode("200");
+				accountsHandler.setErrorMsg("Table Created!!!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return accountsHandler;
+
+	}
 
 	@GET
 	@Path("/all")
@@ -50,12 +80,12 @@ public class AccountsService {
 	@PUT
 	@Path("/{uuid}")
 	@Produces("application/json")
-	public AccountsHandler getSpecificAccount(@PathParam("uuid") String uuid) {
-		LoadQueryValues.loadPropertyValues();
-		String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + uuid;
+	public AccountsHandler getSpecificAccount(@PathParam("uuid") int uuid) {
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		AccountsHandler accountsHandler = new AccountsHandler();
 		try {
+			LoadQueryValues.loadPropertyValues();
+			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + uuid;
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
 			if (valueList.size() > 0) {
 				accountsHandler.setAccountsList(valueList);
@@ -79,11 +109,16 @@ public class AccountsService {
 		LoadQueryValues.loadPropertyValues();
 		AccountsHandler accountsHandler = new AccountsHandler();
 		Utility utility = new Utility();
-		String getQuery = LoadQueryValues.CREATE_NEW_ACCOUNT + utility.generateSerialId() + ",'" + accounts.getEmailId()
-				+ "','" + accounts.getUserId() + "'," + accounts.getBalance() + ")";
-		System.out.println(getQuery);
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
+			if (!(new Utility().checkValidEmail(accounts.getEmailId()))) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Invalid Email-Id");
+				return accountsHandler;
+			}
+			String getQuery = LoadQueryValues.CREATE_NEW_ACCOUNT + utility.generateSerialId() + ",'"
+					+ accounts.getEmailId() + "','" + accounts.getUserId() + "'," + accounts.getBalance() + ")";
+			System.out.println(getQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
 			if (valueList.size() > 0) {
 				accountsHandler.setAccountsList(valueList);
@@ -102,13 +137,13 @@ public class AccountsService {
 	@DELETE
 	@Path("/{accountId}")
 	@Produces("application/json")
-	public AccountsHandler deleteAccount(@PathParam("accountId") String accountId) {
+	public AccountsHandler deleteAccount(@PathParam("accountId") int accountId) {
 		LoadQueryValues.loadPropertyValues();
 		AccountsHandler accountsHandler = new AccountsHandler();
-		String getQuery = LoadQueryValues.DELETE_SPECIFIC_ACCOUNT + accountId;
-		System.out.println(getQuery);
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
+			String getQuery = LoadQueryValues.DELETE_SPECIFIC_ACCOUNT + accountId;
+			System.out.println(getQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
 			if (valueList.size() > 0) {
 				accountsHandler.setAccountsList(valueList);
@@ -133,10 +168,16 @@ public class AccountsService {
 		AccountsHandler accountsHandler = new AccountsHandler();
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
-			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT+accounts.getUuid();
+			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + accounts.getUuid();
 			System.out.println(getQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
 			int depositAmount = accounts.getBalance() + valueList.get(0).getBalance();
+
+			if (accounts.getBalance() < 0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Please Enter a Positive Value");
+				return accountsHandler;
+			}
 
 			String updateQuery = LoadQueryValues.UPDATE_SPECIFIC_ACCOUNT + " balance =" + depositAmount + " where uuid="
 					+ accounts.getUuid();
@@ -168,12 +209,22 @@ public class AccountsService {
 		AccountsHandler accountsHandler = new AccountsHandler();
 		List<Accounts> valueList = new ArrayList<Accounts>();
 		try {
-			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT+accounts.getUuid();
+			String getQuery = LoadQueryValues.GET_SPECIFIC_ACCOUNT + accounts.getUuid();
 			valueList = HSQLConfig.executeQueryForAccounts(getQuery);
-
-			int withDrawAmount = valueList.get(0).getBalance()-accounts.getBalance();
-			String updateQuery = LoadQueryValues.UPDATE_SPECIFIC_ACCOUNT + " balance =" + withDrawAmount + " where uuid="
-					+ accounts.getUuid();
+			if (accounts.getBalance() < 0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Please Enter a Positive Value");
+				return accountsHandler;
+			}
+			int withDrawAmount = valueList.get(0).getBalance() - accounts.getBalance();
+			if (withDrawAmount < 0) {
+				accountsHandler.setErrorCode("400");
+				accountsHandler.setErrorMsg("Balance is less than withdrawal amount,current balance is Rs"
+						+ valueList.get(0).getBalance() + "/-");
+				return accountsHandler;
+			}
+			String updateQuery = LoadQueryValues.UPDATE_SPECIFIC_ACCOUNT + " balance =" + withDrawAmount
+					+ " where uuid=" + accounts.getUuid();
 			System.out.println(updateQuery);
 			valueList = HSQLConfig.executeQueryForAccounts(updateQuery);
 			if (valueList.size() > 0) {

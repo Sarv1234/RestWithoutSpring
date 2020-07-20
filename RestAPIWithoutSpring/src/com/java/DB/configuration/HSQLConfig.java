@@ -19,18 +19,29 @@ public class HSQLConfig {
 		List<User> usersList = new ArrayList<User>();
 		try {
 			Class.forName("org.hsqldb.jdbc.JDBCDriver");
-			Connection c = DriverManager.getConnection("jdbc:hsqldb:file:e:\\HSQL\\myDB;hsqldb.lock_file=false", "SA", "SA");
-			PreparedStatement preparedStatement  = c.prepareStatement(getQuery);
+			Connection c = DriverManager.getConnection("jdbc:hsqldb:file:e:\\HSQL\\myDB;hsqldb.lock_file=false", "SA",
+					"SA");
+			PreparedStatement preparedStatement = c.prepareStatement(getQuery);
 			if (getQuery.contains("select")) {
 				ResultSet s = preparedStatement.executeQuery();
-				while (s.next()) {
-					User user = new User();
-					user.setUserName(s.getString(1));
-					user.setUserId(s.getString(2));
-					usersList.add(user);
+				if (getQuery.contains("table_schem")) {
+					while (s.next()) {
+						User user = new User();
+						user.setStatus("Table Present");
+						usersList.add(user);
+					}
+				} else {
+					while (s.next()) {
+						User user = new User();
+						user.setUserName(s.getString(1));
+						user.setUserId(s.getString(2));
+						usersList.add(user);
+					}
 				}
 				s.close();
-			} else {
+			} else if(getQuery.contains("create")){
+				preparedStatement.execute();
+		    }else {
 				User user = new User();
 				int update = preparedStatement.executeUpdate();
 				user.setStatus("Success");
@@ -51,22 +62,33 @@ public class HSQLConfig {
 		List<Accounts> accountsList = new ArrayList<Accounts>();
 		try {
 			Class.forName("org.hsqldb.jdbc.JDBCDriver");
-			
-			Connection c = DriverManager.getConnection("jdbc:hsqldb:file:e:\\HSQL\\myDB;hsqldb.lock_file=false", "SA", "SA");
-			PreparedStatement preparedStatement  = c.prepareStatement(getQuery);
-			
+
+			Connection c = DriverManager.getConnection("jdbc:hsqldb:file:e:\\HSQL\\myDB;hsqldb.lock_file=false", "SA",
+					"SA");
+			PreparedStatement preparedStatement = c.prepareStatement(getQuery);
+
 			if (getQuery.contains("select")) {
 				ResultSet s = preparedStatement.executeQuery();
-				while (s.next()) {
-					Accounts account = new Accounts();
-					account.setBalance(Integer.parseInt(s.getString(4)));
-					account.setEmailId(s.getString(2));
-					account.setUserId(s.getString(3));
-					account.setUuid(Integer.parseInt(s.getString(1)));
-					accountsList.add(account);
+				if (getQuery.contains("table_schem")) {
+					while (s.next()) {
+						Accounts account = new Accounts();
+						account.setStatus("Table Present");
+						accountsList.add(account);
+					}
+				} else {
+					while (s.next()) {
+						Accounts account = new Accounts();
+						account.setBalance(Integer.parseInt(s.getString(4)));
+						account.setEmailId(s.getString(2));
+						account.setUserId(s.getString(3));
+						account.setUuid(Integer.parseInt(s.getString(1)));
+						accountsList.add(account);
+					}
 				}
 				s.close();
-			} else {
+			} else if(getQuery.contains("create")){
+				preparedStatement.execute();
+		    } else {
 				Accounts account = new Accounts();
 				int update = preparedStatement.executeUpdate();
 				account.setStatus("Success");
